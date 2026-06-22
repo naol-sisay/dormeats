@@ -39,19 +39,22 @@ app.use(async (req, res, next) => {
   }
 });
 
-// API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/menu", menuRoutes);
-app.use("/api/orders", orderRoutes);
+// All API routes live on one router so we can mount it at both "/api" and "/".
+// Locally the frontend hits "/api/auth/login". On Vercel the "/api" routePrefix
+// is stripped before the request reaches Express, so it arrives as "/auth/login".
+// Mounting at both paths makes the backend work in either environment.
+const apiRouter = express.Router();
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/vendors", vendorRoutes);
+apiRouter.use("/menu", menuRoutes);
+apiRouter.use("/orders", orderRoutes);
+apiRouter.use("/batches", batchRoutes);
+apiRouter.use("/deliveries", deliveryRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/pickup-points", pickupRoutes);
 
-
-
-
-app.use("/api/batches", batchRoutes);
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/pickup-points", pickupRoutes);
+app.use("/api", apiRouter);
+app.use("/", apiRouter);
 
 // Simple 404 handler
 app.use((req, res) => {
