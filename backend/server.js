@@ -14,16 +14,29 @@ import adminRoutes from "./routes/adminRoutes.js";
 import pickupRoutes from "./routes/pickupRoutes.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// Health check (does not need the database)
 app.get("/", (req, res) => {
   res.json({ message: "DormEats API is running" });
+});
+
+// Ensure the database is connected before handling any API request.
+// In a serverless environment the connection must be established (and awaited)
+// on each cold start, otherwise queries buffer and time out with a 500.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Database connection failed", error: error.message });
+  }
 });
 
 // API routes
