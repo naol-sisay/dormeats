@@ -29,20 +29,19 @@ export const register = async (req, res) => {
     });
 
     // If registering as a vendor, also create the shop.
-    // NOTE: For this launch period, vendors are AUTO-APPROVED on signup so they
-    // can start selling immediately without waiting for manual admin approval.
-    // To restore manual approval later, set both `approved` flags back to false.
+    // Vendors must be approved by an admin before they can sell, exactly like
+    // carriers. The shop starts pending (approved: false / status: "pending")
+    // and the admin approves it from the dashboard.
     if (user.role === "vendor") {
-      const AUTO_APPROVE_VENDORS = true;
-
       const vendor = await Vendor.create({
         name,
         location: location || "Campus",
-        approved: AUTO_APPROVE_VENDORS,
+        approved: false,
+        status: "pending",
         ownerId: user._id,
       });
       user.vendorId = vendor._id;
-      user.approved = AUTO_APPROVE_VENDORS;
+      user.approved = false;
       await user.save();
     }
 
